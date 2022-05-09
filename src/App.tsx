@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { BehaviorSubject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, Observer, of, switchMap } from 'rxjs';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { IMovie } from './mockData';
@@ -6,7 +7,8 @@ import MoviesList from './components/MoviesList';
 import { getMovieRequest } from './Api';
 import MoviesListHeading from './components/MoviesListHeading';
 import SearchBox from './components/SearchBox';
-import { BehaviorSubject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, Observer, of, switchMap } from 'rxjs';
+import AddToFavourites from './components/AddToFavourites';
+
 
 interface IMoviesData {
   movies: IMovie[];
@@ -26,6 +28,12 @@ const App: React.FC = () => {
   const [moviesData, setMoviesData] = useState<IMoviesData>(initData);
   const [searchValue, setSearchValue] = useState<string>('');
   const [subject, setSubject] = useState<BehaviorSubject<string> | null>(null);
+  const [favourites, setFavourites] = useState<[] | IMovie[] >([]);
+
+  const addFavouriteMovie = (movieId: string) => {
+    const currentMovie = moviesData.movies.find(({ imdbID }) => imdbID === movieId)!;
+		setFavourites([...favourites, currentMovie]);
+	};
 
   const handleSearchValue = useCallback((event: React.FormEvent<HTMLInputElement>) => {
     console.log({ event });
@@ -42,8 +50,8 @@ const App: React.FC = () => {
     } else {
       const observable = subject.pipe(
         map((movie: string) => movie.toLowerCase()),
-        distinctUntilChanged(),
         filter((movie: string) => movie.length >= 2),
+        distinctUntilChanged(),
         debounceTime(300),
         switchMap((movie: string) =>
           merge(
@@ -96,8 +104,22 @@ const App: React.FC = () => {
         <div className='container-fluid movie-app'>
           {moviesData.errorMessage ? <span>{moviesData.errorMessage}</span> : null}
           {!moviesData.noResults && !moviesData.errorMessage
-            ? <MoviesList movies={moviesData.movies} />
+            ? (<MoviesList
+                  movies={moviesData.movies}
+                  FavouriteComponent={AddToFavourites}
+                  handleFavouritesClick={addFavouriteMovie}
+                />)
             : 'NO RESULTS'}
+        </div>
+        <div className='row d-flex align-items-center mt-4 mb-4'>
+          <MoviesListHeading heading='Favourites' />
+        </div>
+        <div className='row'>
+          <MoviesList
+            movies={favourites}
+            FavouriteComponent={AddToFavourites}
+            handleFavouritesClick={() => {}}
+          />
         </div>
       </section>
     </div>

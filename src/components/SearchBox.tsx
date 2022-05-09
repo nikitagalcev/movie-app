@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, memo } from 'react'
+import React, { memo } from 'react'
 
 interface ISearchBoxProps {
   value: string;
