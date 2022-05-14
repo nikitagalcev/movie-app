@@ -1,28 +1,28 @@
 import React, { memo } from 'react'
-import { IMovie } from '../mockData';
+import { IMovie } from '../App';
 
 interface IMoviesListProps {
   movies: IMovie[];
-  FavouriteComponent: React.FC,
-  handleFavouritesClick: (imdbID: string) => void
+  handleFavouritesClick: (imdbID: string) => void;
+  children?: React.ReactNode;
 }
 
 const MoviesList: React.FC<IMoviesListProps> = memo(({
   movies,
   handleFavouritesClick,
-  FavouriteComponent,
+  children
 }) => {
   return (
     <ul className='row'>
       {movies.map(({ Poster, Title, imdbID }) => (
-        <li key={imdbID} className='image-container d-flex col-sm justify-content-start m-3'>
+        <li key={imdbID} className='image-container col-sm d-flex justify-content-start m-3'>
           <img src={Poster} alt={`${Title} movie poster`} />
           <div
             onClick={() => handleFavouritesClick(imdbID)}
             className='overlay d-flex align-items-center justify-content-center'
           >
-						<FavouriteComponent />
-					</div>
+            {children}
+          </div>
         </li> 
       ))}
     </ul>
